@@ -138,7 +138,7 @@
 	 (combine-one/k
 	  (car sos1) sos2
 	  (lambda (val2)
-	    (cont (cons val2 val1))))))))
+	    (cont (append val2 val1))))))))
 
 ;; combine-one : symbol? * list? * cont -> (listof pair?)
 (define (combine-one/k s sos2 cont)
