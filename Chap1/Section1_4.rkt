@@ -2,7 +2,17 @@
 
 (provide duple
 	 invert
-	 down)
+	 down
+	 swapper
+	 list-set
+	 count-occurences
+	 product
+	 filter-in
+	 list-index
+	 every?
+	 exists?
+	 up
+	 flatten)
 
 
 ;; 1.15
@@ -95,12 +105,17 @@
 (define (list-set/k lst n x cont)
   (if (null? lst)
       (cont '())
-      (list-set/k (cdr lst) (sub1 n) x
-		  (lambda (val)
-		    (cont
-		     (cons
-		      (if (zero? n) x (car lst))
-		      val))))))
+      (if (zero? n)
+	  (list-set/k (cdr lst) (sub1 n) x
+		      (lambda (val) (cont (cons x val))))
+	  (list-set/k (cdr lst) (sub1 n) x
+		      (lambda (val) (cont (cons (car lst) val))))
+	  ;;(list-set/k (cdr lst) (sub1 n) x
+	  ;;	    (cont
+	  ;;	     (cons
+	  ;;	      (if (zero? n) x (car lst))
+	  ;;	      val))))))
+	  )))
 
 ;; 1.20
 ;; count-occurrences : symbol? * (listof symbol?) -> number?
@@ -111,17 +126,35 @@
 (define (count-occurences/k s slist cont)
   (if (null? slist)
       (cont 0)
-      (count-occurences/k s (cdr slist)
-			  (lambda (val1)
-			    (let ((sexp (car slist)))
-			      (if (symbol? sexp)
-				  (if (eqv? s sexp)
-				      (cont (add1 val1))
-				      (cont val1))
-				  (count-occurences/k
-				   s sexp
-				   (lambda (val2)
-				     (cont (+ val1 val2))))))))))
+      (let ((sexp (car slist)))
+	(if (symbol? sexp)
+	    (if (eqv? s sexp)
+		(count-occurences/k s (cdr slist)
+				    (lambda (val)
+				      (cont (add1 val))))
+		(count-occurences/k s (cdr slist)
+				    (lambda (val)
+				      (cont val))))
+	    (count-occurences/k
+	     s sexp
+	     (lambda (val1)
+	       (count-occurences/k
+		s (cdr slist)
+		(lambda (val2)
+		  (cont (+ val1 val2))))))
+	    ;;; also, we can rewrite the false branch into
+	    ;;(count-occurences/k s (cdr slist)
+	    ;;		  (lambda (val1)
+	    ;;			    (let ((sexp (car slist)))
+	    ;;			      (if (symbol? sexp)
+	    ;;				  (if (eqv? s sexp)
+	    ;;				      (cont (add1 val1))
+	    ;;				      (cont val1))
+	    ;;				  (count-occurences/k
+	    ;;				   s sexp
+	    ;;				   (lambda (val2)
+	    ;;				     (cont (+ val1 val2))))))))))
+	    ))))
 
 ;; 1.21
 ;; product : list? * list? -> (listof pair?)
@@ -149,3 +182,143 @@
        (lambda (val1)
 	 (cont
 	  (cons (cons s (list (car sos2))) val1))))))
+
+;; 1.22
+;; filter-in : predicate? * list? -> list?
+(define (filter-in pred lst)
+  (filter-in/k pred lst (lambda (val) val)))
+
+(define (filter-in/k pred lst cont)
+  (if (null? lst)
+      (cont '())
+      (let ([elm (car lst)])
+	(if (pred elm)
+	    (filter-in/k
+	     pred (cdr lst)
+	     (lambda (val)
+	       (cont (cons elm val))))
+	    (filter-in/k
+	     pred (cdr lst)
+	     (lambda (val)
+	       (cont val)))))
+      ;;; also, we can rewrite the false branch into
+      ;;      (filter-in/k
+      ;;       pred (cdr lst)
+      ;;       (lambda (val)
+      ;;	 (let ([elm (car lst)])
+      ;;	   (if (pred elm)
+      ;;	       (cont (cons elm val))
+      ;;	       (cont val)))
+      ))
+
+;; 1.23
+;; list-index : predicate * list? -> (or/c number? #f)
+(define (list-index pred lst)
+  (list-index/k pred lst (lambda (val) val)))
+
+;; list-index/k : predicate * list? * cont -> (or/c number? #f)
+(define (list-index/k pred lst cont)
+  (cond
+   [(null? lst) => (lambda (val) (cont (not val)))]
+   [(pred (car lst))
+    (list-index/k pred (cdr lst)
+		  (lambda (val) (cont 0)))]
+   [else
+    (count-index/k pred (cdr lst)
+		   (lambda (val)
+		     (if (boolean? val)
+			 val
+			 (cont (add1 val)))))]
+   ;;; as an alternative, you can use the below line
+   ;;[else (count-index/k pred lst cont)]
+   ))
+
+(define (count-index/k pred lst cont)
+  (if (null? lst)
+      (cont 0)
+      (let ((elm (car lst)))
+	(if (pred elm)
+	    (count-index/k pred (cdr lst)
+			   (lambda (val) (cont 0)))
+	    (if (null? (cdr lst))
+		#f
+		(count-index/k pred (cdr lst)
+			       (lambda (val) (cont (add1 val)))))))))
+
+;; 1.24
+;; every? : predicate * list? -> boolean?
+(define (every? pred lst)
+  (every?/k pred lst (lambda (val) val)))
+
+;; every?/k : predicate * list? * cont -> boolean?
+(define (every?/k pred lst cont)
+  (if (null? lst)
+      (cont #t)
+      (every?/k pred (cdr lst)
+		(lambda (val)
+		  (if (pred (car lst))
+		      (cont val)
+		      #f)))))
+
+
+;; 1.25
+;; exists? : predicate * list? -> boolean?
+(define (exists? pred lst)
+  (exists?/k pred lst (lambda (val) val)))
+
+;; exists?/k : predicate * list? * cont -> boolean?
+(define (exists?/k pred lst cont)
+  (if (null? lst)
+      (cont #f)
+      (exists?/k pred (cdr lst)
+		 (lambda (val)
+		   (if (pred (car lst))
+		       #t
+		       (cont val))))))
+
+;; 1.26
+;; up : list? -> list?
+(define (up lst)
+  (up/k lst (lambda (val) val))
+  ;;(if (null? lst)
+  ;;    '()
+  ;;    (if (list? (car lst))
+  ;;	  (append (car lst) (up (cdr lst)))
+  ;;	  (cons (car lst) (up (cdr lst))))))
+  )
+
+;; up/k : list? * cont -> list?
+(define (up/k lst cont)
+  (if (null? lst)
+      (cont '())
+      (if (list? (car lst))
+	  (up/k (cdr lst)
+		(lambda (val)
+		  (cont (append (car lst) val))))
+	  (up/k (cdr lst)
+		(lambda (val)
+		  (cont (cons (car lst) val)))))))
+
+;; 1.27
+;; flatten : (listof symbol?) -> (listof symbol?)
+(define (flatten slist)
+  (flatten/k slist (lambda (val) val)))
+
+;; flatten/k : (listof symbol?) * cont -> (listof symbol?)
+(define (flatten/k slist cont)
+  (if (null? slist)
+      (cont '())
+      (let ((elm (car slist)))
+	(if (list? elm)
+	    (flatten/k
+	     (cdr slist)
+	     (lambda (val1)
+	       (flatten/k
+		elm
+		(lambda (val2)
+		  (cont
+		   (append val2 val1))))))
+	    (flatten/k
+	     (cdr slist)
+	     (lambda (val)
+	       (cont (cons elm val))))))))
