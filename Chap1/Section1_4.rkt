@@ -1,7 +1,5 @@
 #lang racket
 
-(require "../test-init.rkt")
-
 (provide duple
 	 invert
 	 down
@@ -446,3 +444,31 @@
 		pred num (cdr loi)
 		(lambda (val)
 		  (cont (cons head val)))))))))
+
+;; 1.31
+;; the definition 1.1.7 is on page 32
+
+(define (leaf content)
+  content)
+
+(define (interior-node sym lson rson)
+  (list sym lson rson))
+
+(define (leaf? tree)
+  [match tree
+    [(list sym lson rson) #f]
+    [_ #t]])
+
+(define (lson tree)
+  [match tree
+    [(list sym lson rson) lson]
+    [_ '()]])
+
+(define (rson tree)
+  [match tree
+    [(list sym lson rson) rson]
+    [_ '()]])
+
+(define (contents-of tree)
+  (or (and (leaf? tree) tree)
+      (car tree)))
