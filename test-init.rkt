@@ -1,0 +1,30 @@
+;; This file is deprecated
+#lang racket
+(print-struct #t)
+
+(provide run-test)
+
+(define (apply-safely proc args)
+  (with-handlers ([(lambda (exn) #t)
+		   (lambda (exn)
+		     (cons #f (or (and (exn? exn) (exn-message exn)) exn)))])
+    (let ([actual (apply proc args)])
+      (cons #t actual))))
+
+(define-syntax (run-test stx)
+  (syntax-case stx ()
+    [(_ name expr expected-ans)
+     (syntax-case #'expr ()
+	 [(op args ...)
+	  #'(let* ((result (apply-safely op (list args ...)))
+		   (thrown? (car result))
+		   (ans (cdr result)))
+	      (printf "test: ~a~%" name)
+	      (printf "evaluating ~a~%" (quote expr))
+	      (printf "expected answer: ~a~%" expected-ans)
+	      (printf "actual answer: ~a~%" ans)
+	      (printf "~a => ~a ~%" (quote expr) ans)
+	      (printf "expection raised? : ~a~%" (not thrown?))
+	      (printf "pass? : ~a~%" (eqv? ans expected-ans))
+	      (printf "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~%")
+	      )])]))

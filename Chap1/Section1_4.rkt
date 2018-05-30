@@ -1,5 +1,7 @@
 #lang racket
 
+(require "../test-init.rkt")
+
 (provide duple
 	 invert
 	 down
@@ -13,6 +15,81 @@
 	 exists?
 	 up
 	 flatten)
+
+(module+ test
+  (require rackunit)
+  ;; for 1.15
+  [check-equal? (duple 2 3) '(3 3)]
+  [check-equal? (duple 4 '(ha ha)) '((ha ha) (ha ha) (ha ha) (ha ha))]
+  [check-equal? (duple 0 '(blah)) '()]
+
+  ;; for 1.16
+  [check-equal? (invert '((a 1) (a 2) (1 b) (2 b))) '((1 a) (2 a) (b 1) (b 2))]
+  [check-equal? (invert '()) '()]
+
+  ;; for 1.17
+  [check-equal? (down '(1 2 3)) '((1) (2) (3))]
+  [check-equal? (down '((a) (fine) (idea))) '(((a)) ((fine)) ((idea)))]
+  [check-equal? (down '(a (more (complicated)) object)) '((a) ((more (complicated))) (object))]
+
+  ;; for 1.18
+  [check-equal? (swapper 'a 'd '(a b c d)) '(d b c a)]
+  [check-equal? (swapper 'a 'd '(a d () c d)) '(d a () c a)]
+  [check-equal? (swapper 'x 'y '((x) y (z (x)))) '((y) x (z (y)))]
+
+  ;; for 1.19
+  [check-equal? (list-set '(a b c d) 2 '(1 2)) '(a b (1 2) d)]
+  [check-equal? (list-ref (list-set '(a b c d) 3 '(1 5 10)) 3) '(1 5 10)]
+
+  ;; for 1.20
+  [check-equal? (count-occurences 'x '((f x) y (((x z) x)))) 3]
+  [check-equal? (count-occurences 'x '((f x) y (((x z) () x)))) 3]
+  [check-equal? (count-occurences 'w '((f x) y ((x z) x))) 0]
+
+  ;; for 1.21
+  [check-equal? (product '(a b c) '(x y)) '((a x) (a y) (b x) (b y) (c x) (c y))]
+
+  ;; for 1.22
+  [check-equal? (filter-in number? '(a 2 (1 3) b 7)) '(2 7)]
+  [check-equal? (filter-in symbol? '(a (b c) 17 foo)) '(a foo)]
+
+  ;; for 1.23
+  [check-equal? (list-index number? '(a 2 (1 3) b 7)) 1]
+  [check-equal? (list-index symbol? '(a (b c) 17 foo)) 0]
+  [check-equal? (list-index symbol? '(1 2 (a b) 3)) #f]
+
+  ;; for 1.24
+  [check-equal? (every? number? '(a b c 3 e)) #f]
+  [check-equal? (every? number? '(1 2 3 5 4)) #t]
+
+  ;; for 1.25
+  [check-equal? (exists? number? '(a b c 3 e)) #t]
+  [check-equal? (exists? number? '(a b c d e)) #f]
+
+  ;; for 1.26
+  [check-equal? (up '((1 2) (3 4))) '(1 2 3 4)]
+  [check-equal? (up '((x (y)) z)) '(x (y) z)]
+
+  ;; for 1.27
+  [check-equal? (flatten '(a b c)) '(a b c)]
+  [check-equal? (flatten '((a) () (b ()) () (c))) '(a b c)]
+  [check-equal? (flatten '((a b) c (((d)) e))) '(a b c d e)]
+  [check-equal? (flatten '(a b (() (c)))) '(a b c)]
+
+  ;; for 1.28
+  [check-equal? (merge '(1 4) '(1 2 8)) '(1 1 2 4 8)]
+  [check-equal? (merge '(35 62 81 90 91) '(3 83 85 90)) '(3 35 62 81 83 85 90 90 91)]
+
+;; for 1.29
+  [check-equal? (sort '(8 2 5 2 3)) '(2 2 3 5 8)]
+
+  ;; for 1.30
+  [check-equal? (sort/predicate < '(8 2 5 2 3)) '(2 2 3 5 8)]
+  [check-equal? (sort/predicate > '(8 2 5 2 3)) '(8 5 3 2 2)]
+
+  )
+
+
 
 
 ;; 1.15
@@ -322,3 +399,50 @@
 	     (cdr slist)
 	     (lambda (val)
 	       (cont (cons elm val))))))))
+
+;; 1.28
+;; merge : (listof integer?) * (listof integer?) -> (listof integer?)
+(define (merge loi1 loi2)
+  (sort (append loi1 loi2)))
+
+;; 1.29
+;; sort : (listof integer?) -> (listof integer)
+(define (sort loi)
+  (sort-tail loi '()))
+
+(define (sort-tail loi res)
+  (if (null? loi)
+      res
+      (sort-tail (cdr loi)
+		 (insert-to-list/pred/k < (car loi) res (lambda (val) val)))))
+
+;; it is weird to rewrite the tail-call fucntion to the CPS function
+;;(define (sort/k loi res cont)
+;;  (if (null? loi)
+;;      (cont res)
+;;      (sort/k (cdr loi)
+;;	      (insert-to-list/pred/k < (car loi) res cont)
+;;	      (lambda (val)
+;;		(cont val)))))
+
+;; 1.30
+;; sort/predicate : pred * loi -> loi
+(define (sort/predicate pred loi)
+  (sort/predicate-tail pred loi '()))
+
+(define (sort/predicate-tail pred loi res)
+  (if (null? loi)
+      res
+      (sort/predicate-tail pred (cdr loi)
+			   (insert-to-list/pred/k pred (car loi) res (lambda (val) val)))))
+
+(define (insert-to-list/pred/k pred num loi cont)
+  (if (null? loi)
+      (cont (cons num loi))
+      (let ((head (car loi)))
+	(cond
+	 ((pred num head) (cont (cons num loi)))
+	 (else (insert-to-list/pred/k
+		pred num (cdr loi)
+		(lambda (val)
+		  (cont (cons head val)))))))))
