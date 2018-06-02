@@ -472,3 +472,36 @@
 (define (contents-of tree)
   (or (and (leaf? tree) tree)
       (car tree)))
+
+;; 1.32
+;; double-tree : (listof tree) -> (lisetof tree)
+(define (double-tree tree)
+  (double-tree/k tree (lambda (val) val)))
+
+(define (double-tree/k tree cont)
+  (cond
+   [(null? tree) (cont '())]
+   [(leaf? tree) (cont (* 2 (contents-of tree)))]
+   [else
+    (double-tree/k
+     (lson tree) (lambda (lval)
+		   (double-tree/k
+		    (rson tree) (lambda (rval)
+				  (cont (interior-node (car tree) lval rval))))))]))
+
+;; 1.33
+(define (mark-leaves-with-red-depth tree)
+  (mark-leaves-with-red-depth/k tree 0 (lambda (val) val)))
+
+(define (mark-leaves-with-red-depth/k tree depth cont)
+  (cond
+   [(or (null? tree) (leaf? tree))
+    (cont depth)]
+   [else
+    (mark-leaves-with-red-depth/k
+     (lson tree) (or (and (eq? (car tree) 'red) (+ depth 1)) depth)
+     (lambda (lval)
+       (mark-leaves-with-red-depth/k
+	(rson tree) (or (and (eq? (car tree) 'red) (+ depth 1)) depth)
+	(lambda (rval)
+	  (cont (interior-node (car tree) lval rval))))))]))
