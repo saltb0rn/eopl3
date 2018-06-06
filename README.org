@@ -35,3 +35,6 @@ or write a pull request.
       - 1.35
       - 1.36
 
+*** Chap2
+    - Section 1 (section2_1.rkt)
+      - 2.1
