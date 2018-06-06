@@ -110,7 +110,10 @@
 		   (quux 3 4)))]
 
   ;; 1.36
-  
+  [check-equal? (number-elements '(R a c k e t))
+		'((0 R) (1 a) (2 c) (3 k) (4 e) (5 t))]
+
+  [check-equal? (number-elements '()) '()]
 
   )
 
@@ -575,6 +578,29 @@
 		  (cadr rval)))))))]))
 
 ;; 1.36
-;(define (g node lst)
-;  (
+(define (g node lst)
+  (g/k node lst 0 (lambda (val) val)))
+
+(define (g/k node lst counter cont)
+  (if (null? lst)
+      (cont (list node))
+      (g/k
+       (list (+ counter 1) (cadr (car lst)))
+       (cdr lst)
+       (+ counter 1)
+       (lambda (val)
+	 (cont (cons node val))))))
+
+(define (number-elements lst)
+  (if (null? lst)
+      '()
+      (g (list 0 (car lst)) (number-elements (cdr lst)))))
+	 
+
+
+
+
+      
+
+
   
