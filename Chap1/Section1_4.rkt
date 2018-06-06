@@ -1,19 +1,5 @@
 #lang racket
 
-(provide duple
-	 invert
-	 down
-	 swapper
-	 list-set
-	 count-occurences
-	 product
-	 filter-in
-	 list-index
-	 every?
-	 exists?
-	 up
-	 flatten)
-
 (module+ test
   (require rackunit)
   ;; for 1.15
@@ -84,6 +70,47 @@
   ;; for 1.30
   [check-equal? (sort/predicate < '(8 2 5 2 3)) '(2 2 3 5 8)]
   [check-equal? (sort/predicate > '(8 2 5 2 3)) '(8 5 3 2 2)]
+
+  ;; for 1.33
+  [check-equal? (mark-leaves-with-red-depth
+		 (interior-node 'red
+				(interior-node 'bar
+					       (leaf 26)
+					       (leaf 12))
+				(interior-node 'red
+					       (leaf 11)
+					       (interior-node 'quux
+							      (leaf 117)
+							      (leaf 14)))))
+		'(red
+		  (bar 1 1)
+		  (red 2 (quux 2 2)))]
+
+  ;; 1.34
+  [check-equal? (path 17 '(14 (7 () (12 () ()))
+			      (26 (20 (17 () ())
+				      ())
+				  (31 () ()))))
+		'(right left left)]
+
+  [check-equal? (number-leaves
+		 (interior-node 'foo
+				(interior-node 'bar
+					       (leaf 26)
+					       (leaf 12))
+				(interior-node 'baz
+					       (leaf 11)
+					       (interior-node 'quux
+							      (leaf 117)
+							      (leaf 14)))))
+		'(foo
+		  (bar 0 1)
+		  (baz
+		   2
+		   (quux 3 4)))]
+
+  ;; 1.36
+  
 
   )
 
@@ -505,3 +532,49 @@
 	(rson tree) (or (and (eq? (car tree) 'red) (+ depth 1)) depth)
 	(lambda (rval)
 	  (cont (interior-node (car tree) lval rval))))))]))
+
+;; 1.34
+(define (path n bst)
+  (path/k n bst (lambda (val) val)))
+
+(define (path/k n bst cont)
+  (let ((node (contents-of bst)))
+    (cond
+     [(or (null? bst) (equal? n node))
+      (cont '())]
+     [(< n node)
+      (path/k n (lson bst)
+	      (lambda (val)
+		(cont (cons 'left val))))]
+     [(> n node)
+      (path/k n (rson bst)
+	      (lambda (val)
+		(cont (cons 'right val))))])))
+
+;; 1.35
+(define (number-leaves bt)
+  (car
+   (number-leaves-from/k bt 0 (lambda (val) val))))
+
+(define (number-leaves-from/k bt n cont)
+  (cond
+   [(null? bt) (cont (list bt n))]
+   [(leaf? bt) (cont (list n (+ n 1)))]
+   [else
+    (number-leaves-from/k
+     (lson bt) n
+     (lambda (lval)
+       (number-leaves-from/k
+	(rson bt) (cadr lval)
+	(lambda (rval)
+	  (cont
+	   (list (interior-node
+		  (contents-of bt)
+		  (car lval)
+		  (car rval))
+		  (cadr rval)))))))]))
+
+;; 1.36
+;(define (g node lst)
+;  (
+  
