@@ -7,11 +7,11 @@ or write a pull request.
 ** The exercises that have been solved
 
 *** Chap1
-    - Section 2 (section1_2.rkt)
+    - Section 2 (Chap1/section1_2.rkt)
       - 1.11
       - 1.12
       - 1.13
-    - Section 4 (section1_4.rkt)
+    - Section 4 (Chap1/section1_4.rkt)
       - 1.15
       - 1.16
       - 1.17
@@ -36,5 +36,6 @@ or write a pull request.
       - 1.36
 
 *** Chap2
-    - Section 1 (section2_1.rkt)
-      - 2.1
+    - Section 1
+      - 2.1  (Chap2/2_1.rkt)
+      - 2.3 (Chap2/2_3.rkt)
