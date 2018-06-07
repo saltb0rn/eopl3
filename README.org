@@ -39,3 +39,4 @@ or write a pull request.
     - Section 1
       - 2.1  (Chap2/2_1.rkt)
       - 2.4 (Chap2/2_4.rkt)
+      - 2.5 (Chap2/2_5.rkt)
