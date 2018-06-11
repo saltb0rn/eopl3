@@ -4,10 +4,14 @@
   (list
    (lambda (var)
      (error (format "~a is not bound" var)))
-   (lambda () #t)))
+   (lambda () #t)
+   (lambda (var) #f)))
 
 (define (empty-env? env)
-  ((cadr env)))
+  ((second env)))
+
+(define (has-binding? env s)
+   ((third env) s))
 
 (define (extend-env var val env)
   (list
@@ -15,8 +19,10 @@
      (if (eqv? search-var var)
 	 val
 	 (apply-env env search-var)))
-   (lambda ()
-     #f)))
+   (lambda () #f)
+   (lambda (search-var)
+     (or (eqv? search-var var)
+	 (has-binding? env search-var)))))
 
 (define (apply-env env search-var)
-  ((car env) search-var))
+  ((first env) search-var))
