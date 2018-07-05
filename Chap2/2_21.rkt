@@ -13,7 +13,3 @@
 		     (if (eqv? identifier searched-var)
 			 value
 			 (apply-env saved-env searched-var)))))
-
-
-
-
