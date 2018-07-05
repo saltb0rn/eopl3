@@ -54,3 +54,4 @@ or write a pull request.
       - 2.19 (Chap2/2_19.rkt)
       - 2.20 (Chap2/2_20.rkt)
       - 2.21 (Chap2/2_21.rkt)
+      - 2.22 (Chap2/2_22.rkt)
