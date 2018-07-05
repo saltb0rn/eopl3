@@ -13,6 +13,16 @@
   (a-result (key symbol?)
 	    (sum (lambda (val) (or null? number?)))))
 
+(define (a-result->key res)
+  (cases result res
+	 (empty-result () (eopl:error 'keyerror "empty result has no key"))
+	 (a-result (key sum) key)))
+
+(define (a-result->sum res)
+  (cases result res
+	 (empty-result () (eopl:error 'sumerror "empty- result has no sum"))
+	 (a-result (key sum) sum)))
+
 (define (interior->sum interior)
   (interior->sum/k interior (lambda (val) val)))
 
@@ -27,11 +37,6 @@
 			    right
 			    (lambda (val2)
 			      (cont (+ val1 val2)))))))))
-
-(define (empty-result? res)
-  (cases result res
-	 (empty-result () #t)
-	 (else #f)))
 
 (define (remove-empty-result lst)
   (sub-remove-empty-result lst '()))
@@ -55,14 +60,12 @@
       max
       (the-max-sub
        (cdr lst)
-       (cases result (car lst)
-	      (empty-result () (car lst))
-	      (else max)))))
+       (if (> (a-result->sum (car lst)) (a-result->sum max))
+	   (car lst)
+	   max))))
 
 (define (max-interior bt)
-  (cases result (sub-max-interior bt)
-	 (a-result (key sum) key)
-	 (else (eopl:error 'result "result should not be empty"))))
+  (a-result->key (sub-max-interior bt)))
 
 (define (sub-max-interior bt)
   (cases bintree bt
