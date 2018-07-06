@@ -63,3 +63,7 @@ or write a pull request.
       - 2.29 (Chap2/2_29.rkt)
       - 2.30 (Chap2/2_30.rkt)
       - 2.31 (Chap2/2_31.rkt)
+
+*** Chap3
+    - 3.1 (Chap3/3_1.rkt)
+    - 3.2 (Chap3/3_2.rkt)
