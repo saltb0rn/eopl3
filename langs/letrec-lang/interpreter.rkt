@@ -138,7 +138,8 @@
            [call-exp (rator rand)
                      (let ([proc (expval->proc (value-of rator env))]
                            [arg (value-of rand env)])
-                       ;; the problem raised here
+                       (print (length env))
+                       (newline)
                        (apply-procedure proc arg))]
            [letrec-exp (proc-name var proc-body letrec-body)
                        (let ((new-env (extend-env-rec proc-name var proc-body env)))
@@ -155,4 +156,4 @@
              [bool-val (v) v]
              [proc-val (v) v]))))
 
-(run "letrec p (z) = if zero?(z) then 1 else (p -(z,1)) in (p 10)")
+(run "letrec p (z) = if zero?(z) then 1 else (p -((p -(z,1)),1)) in (p 11)")

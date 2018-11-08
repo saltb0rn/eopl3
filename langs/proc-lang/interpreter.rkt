@@ -144,6 +144,9 @@
     (cases expval (value-of-program (scan&parse src))
            [num-val (num) num]
            [bool-val (bool) bool]
+           [proc-val (proc) proc]
            [else (eopl:error 'expval-extractors "Undefined")])))
 
-(run "(proc (a) -(1,a) 4)")
+;;(run "(proc (a) (a 1) proc (b) -(b,1))")
+
+(run "proc (a) (a 1)")
