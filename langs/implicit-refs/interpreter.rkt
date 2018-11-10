@@ -211,9 +211,10 @@
                                  (extend-env-rec* p-names vars p-bodies env))]
            [begin-exp (exp1 exps)
                       (let value-of-begins ([e1 exp1] [es exps])
+                        (let ((v1 (value-of e1 env))) ;; should evaluate e1 first
                         (if (null? es)
-                            (value-of e1 env)
-                            (value-of-begins (car es) (cdr es))))]
+                            v1
+                            (value-of-begins (car es) (cdr es)))))]
            [assign-exp (var exp1)
                        (begin
                          (setref!
