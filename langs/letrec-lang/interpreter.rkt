@@ -138,8 +138,6 @@
            [call-exp (rator rand)
                      (let ([proc (expval->proc (value-of rator env))]
                            [arg (value-of rand env)])
-                       (print (length env))
-                       (newline)
                        (apply-procedure proc arg))]
            [letrec-exp (proc-name var proc-body letrec-body)
                        (let ((new-env (extend-env-rec proc-name var proc-body env)))
