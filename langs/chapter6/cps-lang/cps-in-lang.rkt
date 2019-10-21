@@ -17,7 +17,7 @@
   '([program (expression) a-program]
     [expression (number) const-exp]
     [expression (identifier) var-exp]
-    [expression ("-" "(" (separated-list expression ",") ")")
+    [expression ("-" "("  expression "," expression ")")
                 diff-exp]
     [expression ("+" "(" (separated-list expression ",") ")")
                 sum-exp]

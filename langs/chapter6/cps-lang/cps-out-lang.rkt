@@ -21,6 +21,9 @@
      ("-" "(" simple-expression "," simple-expression ")")
      cps-diff-exp]
     [simple-expression
+     ("+" "(" (separated-list simple-expression ",") ")")
+     cps-sum-exp]
+    [simple-expression
      ("zero?" "(" simple-expression ")")
      cps-zero?-exp]
     [simple-expression
