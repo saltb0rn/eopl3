@@ -203,7 +203,7 @@
                (lambda (new-rands)
                  (cps-call-exp
                   (car new-rands)
-                  (append (car new-rands) (list k-exp))))))
+                  (append (cdr new-rands) (list k-exp))))))
 
 
 
